@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload Example</title>
+</head>
+<body>
+    <h1>File Upload Example</h1>
+    <form id="upload-form">
+        <input type="file" name="file" id="file-input" accept=".txt">
+        <button type="submit" id="upload-button">Upload File</button>
+    </form>
+    <div id="message"></div>
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            var fileInput = document.getElementById('file-input');
+            var file = fileInput.files[0];
+
+            if (!file) {
+                document.getElementById('message').textContent = 'Please select a file to upload.';
+                return;
+            }
+
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                var fileContent = event.target.result;
+                // Encode fileContent before sending it
+                fileContent = btoa(unescape(encodeURIComponent(fileContent)));
+
+                // Create JSON data
+                var jsonData = {
+                    fileContent: fileContent,
+                    fileName: file.name
+                };
+
+                fetch('https://ggiyb6om1f.execute-api.us-east-2.amazonaws.com/default/blackboard-aiken-converter/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(jsonData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.statusCode === 200) {
+                        var downloadLink = document.createElement('a');
+                        downloadLink.href = data.body;
+                        downloadLink.textContent = 'Download File';
+                        document.getElementById('message').textContent = 'File uploaded successfully. ';
+                        document.getElementById('message').appendChild(downloadLink);
+                    } else {
+                        document.getElementById('message').textContent = 'File upload failed.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('message').textContent = 'An error occurred.';
+                });
+            };
+
+            // Read the file as text
+            reader.readAsText(file);
+        });
+    </script>
+</body>
+</html>
