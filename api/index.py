@@ -4,15 +4,11 @@ from flask import Flask, request, send_file, render_template
 
 app = Flask(__name__)
 # set upload folder to tmp
-app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd())
+app.config['UPLOAD_FOLDER'] = 'tmp'
 
 # Function to convert Aiken format to Blackboard tab-delimited format
-def convert_aiken_to_blackboard(input_file, output_file):
-  try:
-    # Open the Aiken file for reading
-    with open(input_file, 'r', encoding='utf-8') as aiken_file:
-      aiken_text = aiken_file.read()
-    
+def convert_aiken_to_blackboard(aiken_text, output_file):
+  # try:
     # Split the Aiken text into lines
     lines = aiken_text.strip().split('\n')
     
@@ -65,8 +61,8 @@ def convert_aiken_to_blackboard(input_file, output_file):
         bb_file.write(bb_line + '\n')
 
     print(f"Conversion complete. Results saved to {output_file}")
-  except Exception as e:
-    print(f"An error occurred: {str(e)}")
+  # except Exception as e:
+  #   print(f"An error occurred: {str(e)}")
 
 @app.route('/')
 def home():
@@ -84,8 +80,10 @@ def get_file():
   # Check if file extension is .txt
   if extension == 'txt':
     # Convert file to Blackboard format
-    bb_filename = filename[0:-4] + '_blackboard.txt'
-    convert_aiken_to_blackboard(filename, bb_filename)
+    bb_filename = os.path.join(app.config['UPLOAD_FOLDER'], filename[0:-4] + '_blackboard.txt')
+    # Read file to text
+    aiken_text = file.read().decode('utf-8')
+    convert_aiken_to_blackboard(aiken_text, bb_filename)
     return 'Success'
   else:
     return 'File must be a .txt file'
