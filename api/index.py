@@ -4,7 +4,7 @@ from flask import Flask, request, send_file, render_template
 
 app = Flask(__name__)
 # set upload folder to tmp
-app.config['UPLOAD_FOLDER'] = 'tmp'
+app.config['UPLOAD_FOLDER'] = '/tmp'
 
 # Function to convert Aiken format to Blackboard tab-delimited format
 def convert_aiken_to_blackboard(aiken_text, output_file):
