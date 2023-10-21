@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>File Upload</title>
+</head>
+
+<body>
+  <h2>Upload a File</h2>
+  <form id="upload-form">
+    <input type="file" name="file" id="file-input">
+    <input type="submit" value="Upload">
+  </form>
+  <div id="message"></div>
+  <script>
+    document.getElementById('upload-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var fileInput = document.getElementById('file-input');
+      var file = fileInput.files[0];
+
+      if (!file) {
+        document.getElementById('message').textContent = 'Please select a file to upload.';
+        return;
+      }
+
+      var formData = new FormData();
+      formData.append('file', file);
+
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => {
+          if (response.status === 200) {
+            document.getElementById('message').textContent = 'File uploaded successfully.';
+          } else {
+            document.getElementById('message').textContent = 'File upload failed.';
+          }
+        })
+        .then(() => {
+          // Save response to file
+          fetch('/download/' + file.name, {
+            method: 'GET'
+          }).then(response => {
+            if (response.status === 200) {
+              return response.blob();
+            } else {
+              document.getElementById('message').textContent = 'File download failed.';
+            }
+          })
+          .then(blob => {
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+            a.click();
+            a.remove();  //afterwards we remove the element again         
+          })
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          document.getElementById('message').textContent = 'An error occurred.';
+        });
+    });
+  </script>
+</body>
+
+</html>

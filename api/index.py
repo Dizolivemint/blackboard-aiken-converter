@@ -1,20 +1,17 @@
 import os
 import re
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, render_template
 
 app = Flask(__name__)
 # set upload folder to tmp
-app.config['UPLOAD_FOLDER'] = '/tmp'
+app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd())
 
 # Function to convert Aiken format to Blackboard tab-delimited format
 def convert_aiken_to_blackboard(input_file, output_file):
   try:
     # Open the Aiken file for reading
     with open(input_file, 'r', encoding='utf-8') as aiken_file:
-        aiken_text = aiken_file.read()
-        
-    # Initialize a list to store the Blackboard-formatted questions
-    bb_questions = []
+      aiken_text = aiken_file.read()
     
     # Split the Aiken text into lines
     lines = aiken_text.strip().split('\n')
@@ -73,7 +70,7 @@ def convert_aiken_to_blackboard(input_file, output_file):
 
 @app.route('/')
 def home():
-  return Flask.render_template('ui.html')
+  return render_template('ui.html')
 
 # API Endpoint Function
 @app.route("/upload", methods=['POST'])
@@ -87,22 +84,30 @@ def get_file():
   # Check if file extension is .txt
   if extension == 'txt':
     # Save file to uploads folder
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(file_path)
     # Convert file to Blackboard format
-    convert_aiken_to_blackboard(filename, filename + '_blackboard.txt')
-    # Return file
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    bb_filename = filename[0:-4] + '_blackboard.txt'
+    convert_aiken_to_blackboard(filename, bb_filename)
+    return 'Success'
   else:
     return 'File must be a .txt file'
 
-def send_from_directory(upload_folder, filename):
+@app.route('/download/<filename>')
+def download_file(filename):
+  filename = filename[0:-4] + '_blackboard.txt'
+
   # Specify the path to the uploaded file
-  file_path = os.path.join(upload_folder, filename)
+  file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 
   # Check if the file exists
   if os.path.exists(file_path):
     # Send the file as a response to the browser
-    return send_file(file_path, as_attachment=True)
+    return send_file(file_path,
+              download_name=filename, 
+              mimetype='text/plain',
+              as_attachment=True
+            )
   else:
     return 'File not found'
   
