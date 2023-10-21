@@ -83,9 +83,6 @@ def get_file():
   extension = filename.split('.')[1]
   # Check if file extension is .txt
   if extension == 'txt':
-    # Save file to uploads folder
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(file_path)
     # Convert file to Blackboard format
     bb_filename = filename[0:-4] + '_blackboard.txt'
     convert_aiken_to_blackboard(filename, bb_filename)
